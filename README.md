@@ -1,8 +1,8 @@
 ### Description
-Good ol' fashion event emitting/listening but using redis instead of node's native event emitter.
+Redis is awesome. But have you seen how one accomplishes [pub/sub](https://github.com/mranney/node_redis#publish--subscribe) with the (otherwise incredibly awesome) redis module? Good ol' fashion event emitting/listening but using redis instead of node's native event emitter.
 
 ### Get Deps
-Redis needs to be running somewhere
+Redis needs to be running somewhere. Tests need mocha installed.
 
 ### Install
 ```

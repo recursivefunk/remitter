@@ -1,6 +1,6 @@
 {
   "name": "remitter",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Event Emitter wrapper for redis",
   "main": "index.js",
   "scripts": {

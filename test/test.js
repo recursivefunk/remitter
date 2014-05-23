@@ -20,13 +20,15 @@ describe('Remitter', function(){
       foo: 'bar'
     };
 
-    rEmitter.on('anEvent', function(data){
-      data.should.be.ok;
-      data.should.eql( theData );
-      done();
-    })
+    rEmitter
 
-    .emit( 'anEvent', theData );
+      .on('anEvent', function(data){
+        data.should.be.ok;
+        data.should.eql( theData );
+        done();
+      })
+
+      .emit( 'anEvent', theData );
   });
 
 

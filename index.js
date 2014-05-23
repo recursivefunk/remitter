@@ -3,21 +3,41 @@
 
 var redis = require( 'redis' );
 var logger = require( 'luvely' );
+var async = require( 'async' );
 
 var Remitter = function( opts ) {
   var self = this;
   opts = opts || {};
-  this._host = opts.host || 'localhost';
+  this._host = opts.host || '127.0.0.1';
   this._port = opts.port || 6379;
-  this._auth = opts.auth;
+  this._password = opts.password;
   this._subClient = redis.createClient();
   this._pubClient = redis.createClient();
   return this;
 };
 
-// Remitter.prototype.connect = function( callback ) {
-//   var self = this;
-// };
+Remitter.prototype.connect = function( callback ) {
+  var self = this;
+
+  this._subClient = redis.createClient( this.port, this.host );
+  this._pubClient = redis.createClient( this.port, this.host );
+
+  var getPubReady = function( cb ) {
+    self._pubClient.on( 'ready', cb );
+  };
+
+  var getSubReady = function( cb ) {
+    self._subClient.on( 'ready', cb );
+  };
+
+  async.parallel( [ getPubReady, getSubReady ], function(){
+    if ( self._password ) {
+      self._pubClient.auth( self._password );
+      self._subClient.auth( self._password );
+    }
+    callback();
+  });
+};
 
 Remitter.prototype.on = function( evt, onEvt ) {
   var self = this;

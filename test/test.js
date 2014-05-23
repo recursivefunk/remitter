@@ -11,7 +11,7 @@ describe('Remitter', function(){
 
   before(function(done){
     rEmitter = new Remitter();
-    done();
+    rEmitter.connect( done );
   });
 
   it('works', function(done){

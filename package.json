@@ -11,6 +11,7 @@
   "dependencies": {
     "redis": "~0.10.3",
     "should": "~3.3.1",
-    "luvely": "0.0.5"
+    "luvely": "0.0.5",
+    "async": "~0.9.0"
   }
 }

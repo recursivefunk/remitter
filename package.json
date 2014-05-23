@@ -1,0 +1,16 @@
+{
+  "name": "remitter",
+  "version": "0.0.0",
+  "description": "Event Emitter wrapper for redis",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test/test.js"
+  },
+  "author": "Johnny Ray Austin <johnny@johnnyray.me>",
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "redis": "~0.10.3",
+    "should": "~3.3.1",
+    "luvely": "0.0.5"
+  }
+}

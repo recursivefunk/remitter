@@ -43,12 +43,13 @@ Remitter.prototype.on = function( evt, onEvt ) {
   var self = this;
   this._subClient.subscribe( evt );
   this._subClient.on('message', function( channel, data ){
-
-    if ( data ) {
-      var obj = self._deserialize( data );
-      onEvt( obj );
-    } else {
-      onEvt();
+    if ( channel === evt ) {
+      if ( data ) {
+        var obj = self._deserialize( data );
+        onEvt( obj );
+      } else {
+        onEvt();
+      }
     }
   });
   return this;

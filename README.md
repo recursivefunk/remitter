@@ -23,6 +23,11 @@ For the current version, only local redis installs are supported so you'll need 
   thing.emit( 'anEvent', { aMessage: 'sup' } );
 ```
 
+### Test
+```
+  npm test
+```
+
 
 
 

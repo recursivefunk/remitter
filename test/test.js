@@ -79,5 +79,22 @@ describe('Remitter', function(){
       .emit( 'aNumber', theNumber );
   });
 
+  it('should remove a listener', function(done){
+    var count = 0;
+
+    rEmitter.on('theEvent', function(){
+      count += 1;
+    });
+
+    rEmitter.emit( 'theEvent' );
+    rEmitter.removeListener( 'theEvent' );
+    rEmitter.emit( 'theEvent' );
+
+    setTimeout(function(){
+      count.should.equal( 1 );
+      done();
+    }, 500);
+  });
+
 
 });

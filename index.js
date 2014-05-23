@@ -13,6 +13,7 @@ var Remitter = function( opts ) {
   this._password = opts.password;
   this._subClient = redis.createClient();
   this._pubClient = redis.createClient();
+  this._subscriptions = {};
   return this;
 };
 
@@ -62,7 +63,13 @@ Remitter.prototype.emit = function( evt, data ) {
   return this;
 };
 
+Remitter.prototype.removeListener = function( evt ) {
+  this._subClient.unsubscribe( evt );
+  return this;
+};
+
 Remitter.prototype._serialize = function( data ) {
+  data = data || '';
   var type = Object.prototype.toString.call( data );
   if ( type.indexOf( 'Array') > -1 || type === '[object Object]' ) {
     return JSON.stringify( data );

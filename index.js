@@ -1,9 +1,11 @@
 
 'use strict';
 
-var redis = require( 'redis' );
-var logger = require( 'luvely' );
-var async = require( 'async' );
+var redis         = require( 'redis' );
+var logger        = require( 'luvely' );
+var async         = require( 'async' );
+var util          = require( 'util' );
+var EventEmitter  = require( 'events' ).EventEmitter;
 
 var Remitter = function( opts ) {
   var self = this;
@@ -16,6 +18,8 @@ var Remitter = function( opts ) {
   this._subscriptions = {};
   return this;
 };
+
+util.inherits( Remitter, EventEmitter );
 
 Remitter.prototype.connect = function( callback ) {
   var self = this;

@@ -13,8 +13,8 @@ var Remitter = function( opts ) {
   this._host = opts.host || '127.0.0.1';
   this._port = opts.port || 6379;
   this._password = opts.password;
-  this._subClient = redis.createClient();
-  this._pubClient = redis.createClient();
+  this._subClient = opts.sub || null;
+  this._pubClient = opts.pub || null;
   this._subscriptions = {};
   return this;
 };
@@ -24,8 +24,8 @@ util.inherits( Remitter, EventEmitter );
 Remitter.prototype.connect = function( callback ) {
   var self = this;
 
-  this._subClient = redis.createClient( this.port, this.host );
-  this._pubClient = redis.createClient( this.port, this.host );
+  this._subClient = redis.createClient( this._port, this._host );
+  this._pubClient = redis.createClient( this._port, this._host );
 
   var getPubReady = function( cb ) {
     self._pubClient.on( 'ready', cb );

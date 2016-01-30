@@ -1,94 +1,115 @@
 
 'use strict';
 
-var redis         = require( 'redis' );
-var logger        = require( 'luvely' );
-var async         = require( 'async' );
-var util          = require( 'util' );
-var EventEmitter  = require( 'events' ).EventEmitter;
+const redis = require('redis');
+const async = require('async');
+const P = require('bluebird');
+const component = require('stampit');
+const emitterProto = require('events').EventEmitter.prototype;
 
-var Remitter = function( opts ) {
-  var self = this;
-  opts = opts || {};
-  this._host = opts.host || '127.0.0.1';
-  this._port = opts.port || 6379;
-  this._password = opts.password;
-  this._subClient = opts.sub || null;
-  this._pubClient = opts.pub || null;
-  this._subscriptions = {};
-  return this;
-};
+module.exports = (redisUrl) => {
+  redisUrl = redisUrl || process.env.REDIS_URL;
+  return component()
+    .methods({
 
-util.inherits( Remitter, EventEmitter );
+      isConnected() {
+        return this._subClient.connected && this._pubClient.connected;
+      },
 
-Remitter.prototype.connect = function( callback ) {
-  var self = this;
+      connect() {
+        const resolver = P.pending();
+        const self = this;
 
-  this._subClient = redis.createClient( this._port, this._host );
-  this._pubClient = redis.createClient( this._port, this._host );
+          this._subClient = redis.createClient(redisUrl);
+          this._pubClient = redis.createClient(redisUrl);
 
-  var getPubReady = function( cb ) {
-    self._pubClient.on( 'ready', cb );
-  };
+          const getPubReady = (cb) => {
+            self._pubClient.on('ready', cb);
+          };
 
-  var getSubReady = function( cb ) {
-    self._subClient.on( 'ready', cb );
-  };
+          const getSubReady = (cb) => {
+            self._subClient.on('ready', cb);
+          };
 
-  async.parallel( [ getPubReady, getSubReady ], function(){
-    if ( self._password ) {
-      self._pubClient.auth( self._password );
-      self._subClient.auth( self._password );
-    }
-    callback();
-  });
-};
+          async.parallel([ getPubReady, getSubReady ], (err) => {
+            if (err) {
+              resolver.reject(err);
+            } else {
+              if (self._password) {
+                self._pubClient.auth(self._password);
+                self._subClient.auth(self._password);
+              }
+              resolver.resolve();
+            }
 
-Remitter.prototype.on = function( evt, onEvt ) {
-  var self = this;
-  this._subClient.subscribe( evt );
-  this._subClient.on('message', function( channel, data ){
-    if ( channel === evt ) {
-      if ( data ) {
-        var obj = self._deserialize( data );
-        onEvt( obj );
-      } else {
-        onEvt();
+          });
+
+        return resolver.promise;
+      },
+
+      on(evt, onEvt) {
+        const self = this;
+        this._subClient.subscribe(evt);
+        this._subClient.on('message', (channel, data) => {
+          if (channel === evt) {
+            if (data) {
+              const obj = self._deserialize(data);
+              onEvt(obj);
+            } else {
+              onEvt();
+            }
+          }
+        });
+        return this;
+      },
+
+      emit(evt, data) {
+        let serializedData = this._serialize(data);
+        serializedData = (serializedData) ? serializedData : '';
+        this._pubClient.publish(evt, serializedData);
+        return this;
+      },
+
+      removeListener(evt) {
+        this._subClient.unsubscribe(evt);
+        return this;
+      },
+
+      off(evt) {
+        return this.removeListener(evt);
+      },
+
+      destroy() {
+        this._subClient.end(true);
+        this._subClient.unref();
+        this._pubClient.end(true);
+        this._pubClient.unref();
+        return this;
+      },
+
+      _serialize(data) {
+        data = data || '';
+        const type = Object.prototype.toString.call(data);
+        if (type.indexOf('Array') > -1 || type === '[object Object]') {
+          return JSON.stringify(data);
+        }
+        return data.toString();
+      },
+
+      _deserialize(data) {
+        let obj;
+        try {
+          obj = JSON.parse(data);
+        } catch (e) {
+          obj = data;
+        }
+        return obj;
       }
-    }
-  });
-  return this;
-};
-
-Remitter.prototype.emit = function( evt, data ) {
-  var serializedData = this._serialize( data );
-  serializedData = ( serializedData ) ? serializedData : '';
-  this._pubClient.publish( evt, serializedData );
-  return this;
-};
-
-Remitter.prototype.removeListener = function( evt ) {
-  this._subClient.unsubscribe( evt );
-  return this;
-};
-
-Remitter.prototype._serialize = function( data ) {
-  data = data || '';
-  var type = Object.prototype.toString.call( data );
-  if ( type.indexOf( 'Array') > -1 || type === '[object Object]' ) {
-    return JSON.stringify( data );
-  }
-  return data.toString();
-};
-
-Remitter.prototype._deserialize = function( data ) {
-  var obj;
-  try {
-    obj = JSON.parse( data );
-  } catch ( e ) {
-    obj = data;
-  }
-  return obj;
-};
-
-module.exports = Remitter;
+    })
+    .refs({
+      _subscriptions: {},
+      _subClient: {},
+      _pubClient: {}
+    })
+    .create();
+}

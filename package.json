@@ -1,17 +1,32 @@
 {
   "name": "remitter",
-  "version": "0.0.5",
+  "version": "0.1.5",
   "description": "Event Emitter wrapper for redis",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/recursivefunk/remitter.git"
+  },
   "scripts": {
-    "test": "mocha test/test.js"
+    "test": "node test/test.js"
   },
   "author": "Johnny Ray Austin <johnny@johnnyray.me>",
-  "license": "BSD-2-Clause",
+  "license": "MIT",
+  "engineStrict": true,
+  "engines": {
+    "npm": "3.3.3",
+    "node": "4.2.1"
+  },
   "dependencies": {
-    "redis": "~0.10.3",
-    "should": "~3.3.1",
-    "luvely": "0.0.5",
-    "async": "~0.9.0"
+    "async": "^1.5.2",
+    "bluebird": "^3.1.5",
+    "redis": "^2.4.2",
+    "stampit": "^2.1.1"
+  },
+  "devDependencies": {
+    "check-types": "^6.0.0",
+    "co": "^4.6.0",
+    "dotenv": "^2.0.0",
+    "tape": "^4.4.0"
   }
 }

@@ -1,100 +1,85 @@
-/*global describe:false, it:false, before: false*/
 
 'use strict';
 
-var should = require( 'should' );
-var Remitter = require( '../index' );
-var logger = require( 'luvely' );
+require('dotenv').config({path: 'test/test.env'});
 
-describe('Remitter', function(){
+const test = require('tape');
+const P = require('bluebird');
+const co = require('co');
+const check = require('check-types');
+const Remitter = require('../index');
 
-  logger.info( 'Testing event propgation and datatype integrity for Remitter' );
-
-  var rEmitter;
-
-  before(function(done){
-    rEmitter = new Remitter();
-    rEmitter.connect( done );
+const setup = () => {
+  return co(function*() {
+    const remitter = Remitter();
+    yield remitter.connect();
+    return remitter;
+  }).catch((err) => {
+    console.error(err);
+    process.exit();
   });
+};
 
-  it('works for an object', function(done){
-    logger.info( 'Testing object integrity' );
-    var theData = {
-      foo: 'bar'
-    };
+const cleanup = (remitter) => {
+  const remitters = (check.array(remitter)) ? remitter : [remitter];
+  remitters.forEach((r) => r.destroy());
+};
 
-    rEmitter
-      .on('anObject', function(data){
-        data.should.be.ok;
-        data.should.eql( theData );
-        var type = Object.prototype.toString.call( data );
-        type.indexOf( 'Object' ).should.be.above( -1 );
-        done();
-      })
-      .emit( 'anObject', theData );
-  });
+test('it connects', (t) => {
+  co(function*() {
+    const remitter = yield setup();
+    t.equal(remitter.isConnected(), true, 'clients are connected');
+    cleanup(remitter);
+    t.end();
+  })
+  .catch((err) => console.error(err));
+});
 
-  it('works for a string', function(done){
-    logger.info( 'Testing string integrity' );
-    var theString = 'a string';
+test('it emits and listens', (t) => {
+  co(function*() {
+    const remitter = yield setup();
+    const remitter2 = yield setup();
 
-    rEmitter
-      .on('aString', function(data){
-        data.should.be.ok;
-        data.should.eql( theString );
-        var type = Object.prototype.toString.call( data );
-        type.indexOf( 'String' ).should.be.above( -1 );
-        done();
-      })
-      .emit( 'aString', theString );
-  });
+    remitter.on('object', (data) => {
+      t.equal((typeof data), 'object', 'data is an object');
+      t.ok(data.beep, 'the beep key exists');
+      t.equal(data.beep, 'boop', 'the value for key beep is boop');
+    });
 
-  it('works for an array', function(done){
-    logger.info( 'Testing array integrity' );
-    var theArray = [ 1, 2, 3 ];
+    remitter.on('string', (data) => {
+      t.equal((typeof data), 'string', 'data is a string');
+      t.equal(data, 'bang', 'string is bang');
+      cleanup([remitter, remitter2]);
+      t.end();
+    });
 
-    rEmitter
-      .on('anArray', function(data){
-        data.should.be.ok;
-        data.should.eql( theArray );
-        var type = Object.prototype.toString.call( data );
-        type.indexOf( 'Array' ).should.be.above( -1 );
-        done();
-      })
-      .emit( 'anArray', theArray );
-  });
+    remitter2.emit('object', { beep: 'boop' });
+    remitter2.emit('string', 'bang');
 
-  it('works for a number', function(done){
-    logger.info( 'Testing numerical integrity' );
-    var theNumber = 10;
+  })
+  .catch((err) => console.error(err));
+});
 
-    rEmitter
-      .on('aNumber', function(data){
-        data.should.be.ok;
-        data.should.eql( theNumber );
-        var type = Object.prototype.toString.call( data );
-        type.indexOf( 'Number' ).should.be.above( -1 );
-        done();
-      })
-      .emit( 'aNumber', theNumber );
-  });
+test('removes a listener', (t) => {
+  co(function*() {
+    const remitter = yield setup();
+    const remitter2 = yield setup();
+    let count = 0;
 
-  it('should remove a listener', function(done){
-    var count = 0;
-
-    rEmitter.on('theEvent', function(){
+    remitter2.on('inc', () => {
       count += 1;
     });
 
-    rEmitter.emit( 'theEvent' );
-    rEmitter.removeListener( 'theEvent' );
-    rEmitter.emit( 'theEvent' );
+    remitter.emit('inc');
+    remitter2.off('inc');
+    remitter.emit('inc');
 
-    setTimeout(function(){
-      count.should.equal( 1 );
-      done();
-    }, 500);
-  });
+    setTimeout(() => {
+      t.equal(count, 1, 'should have only listened to one inc event');
+      cleanup([remitter, remitter2]);
+      t.end();
+    }, 500)
 
-
+  })
+  .catch((err) => console.error(err));
 });

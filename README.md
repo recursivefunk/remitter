@@ -11,23 +11,24 @@ Redis needs to be running somewhere. Tests need mocha installed.
 
 ### Usage
 ```javascript
-  var Remitter = require( 'remitter' );
-  var thing = new Remitter({
-    host: '127.0.0.1', // this is default
-    port: 6379, // this is default
-    password: 'fflks48ow'
-  });
+  const Remitter = require('remitter');
+  const thing = Remitter(process.env.REDIS_URL);
 
-  thing.connect( onReady );
-
-  function onReady() {
-    thing.on('anEvent', function(someData){
-      // you know the deal
+  thing
+    .connect()
+    .then(() => {
+      thing.on('foo', (foo) => {
+        console.log('foo'); // { beep: 'boop' }
+      });
     });
 
-    // .... some time later
-
-    thing.emit( 'anEvent', { aMessage: 'sup' } );
+    // .... elsewhere in your app - maybe even another process!
+    const thing2 = Remitter(process.env.REDIS_URL);
+    thing2
+      .connect()
+      .then(() => {
+        thing2.emit('foo', { beep: 'boop' });
+      });
   }
 ```
 

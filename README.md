@@ -6,12 +6,15 @@
 ### Description
 Redis is awesome. But have you seen how one accomplishes [pub/sub](https://github.com/mranney/node_redis#publish--subscribe) with the (otherwise incredibly awesome) redis module? Good ol' fashion event emitting/listening but using redis instead of node's native event emitter.
 
-### Get Deps
-Redis needs to be running somewhere. Tests need mocha installed.
+### Redis
+You need a redis instance. Configure it in your environment (replace host and port with your instance info)
+```
+$ export REDIS_URL=redis://127.0.0.1:6379/
+```
 
 ### Install
 ```
-  npm install remitter --save
+$ npm install remitter --save
 ```
 
 ### Usage
@@ -43,7 +46,8 @@ Redis needs to be running somewhere. Tests need mocha installed.
 
 ### Test
 ```
-  npm test
+$ echo "REDIS_URL=redis://127.0.0.1:6379/" >> test/test.env
+$ npm test
 ```
 
 

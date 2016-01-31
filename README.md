@@ -1,4 +1,7 @@
 
+# Remitter
+
+[![Build Status](https://travis-ci.org/recursivefunk/remitter.svg?branch=master)](https://travis-ci.org/recursivefunk/remitter)
 
 ### Description
 Redis is awesome. But have you seen how one accomplishes [pub/sub](https://github.com/mranney/node_redis#publish--subscribe) with the (otherwise incredibly awesome) redis module? Good ol' fashion event emitting/listening but using redis instead of node's native event emitter.

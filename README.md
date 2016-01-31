@@ -1,3 +1,5 @@
+
+
 ### Description
 Redis is awesome. But have you seen how one accomplishes [pub/sub](https://github.com/mranney/node_redis#publish--subscribe) with the (otherwise incredibly awesome) redis module? Good ol' fashion event emitting/listening but using redis instead of node's native event emitter.
 
@@ -29,7 +31,11 @@ Redis needs to be running somewhere. Tests need mocha installed.
       .then(() => {
         thing2.emit('foo', { beep: 'boop' });
       });
-  }
+  
+
+  // ...some time later
+  thing.destroy();
+  thing1.destroy();
 ```
 
 ### Test

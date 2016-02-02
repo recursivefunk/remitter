@@ -132,7 +132,7 @@ module.exports = (redisUrl) => {
       destroy(delay) {
         const self = this;
         if (delay > -1) {
-          setTimeout(destroy, delay);
+          setTimeout(doDestroy, delay);
         } else {
           doDestroy();
         }

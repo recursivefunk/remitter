@@ -32,18 +32,17 @@ module.exports = (redisUrl) => {
         const resolver = P.pending();
         const self = this;
 
-          this._subClient = redis.createClient(redisUrl);
-          this._pubClient = redis.createClient(redisUrl);
-
-          const getPubReady = (cb) => {
-            self._pubClient.on('ready', cb);
+          const getPubReady = (onPubReady) => {
+            self._pubClient = redis.createClient(redisUrl);
+            self._pubClient.on('ready', onPubReady);
           };
 
-          const getSubReady = (cb) => {
-            self._subClient.on('ready', cb);
+          const getSubReady = (onSubReady) => {
+            self._subClient = redis.createClient(redisUrl);
+            self._subClient.on('ready', onSubReady);
           };
 
-          async.parallel([ getPubReady, getSubReady ], (err) => {
+          async.series([ getPubReady, getSubReady ], (err) => {
             if (err) {
               resolver.reject(err);
             } else {

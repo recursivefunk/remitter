@@ -4,13 +4,18 @@
 const redis = require('redis');
 const async = require('async');
 const P = require('bluebird');
+const env = require('good-env');
 const component = require('stampit');
 const EventEmitter = require('events').EventEmitter;
 const emitterProto = EventEmitter.prototype;
 
 module.exports = (redisUrl) => {
-  redisUrl = redisUrl || process.env.REDIS_URL;
   return component()
+    .init((opts, args) => {
+      const this = args.instance;
+      const fallbackUrl = 'redis://localhost:6379';
+      this._redisUrl = opts.redisUrl || env.get('REDIS_URL', fallbackUrl);
+    })
     .methods({
 
       /**
@@ -29,9 +34,8 @@ module.exports = (redisUrl) => {
        * @return {[type]} [description]
        */
       connect() {
-        const resolver = P.pending();
         const self = this;
-
+        return new P((resolve, reject) => {
           const getPubReady = (onPubReady) => {
             self._pubClient = redis.createClient(redisUrl);
             self._pubClient.on('ready', onPubReady);
@@ -44,18 +48,17 @@ module.exports = (redisUrl) => {
 
           async.series([ getPubReady, getSubReady ], (err) => {
             if (err) {
-              resolver.reject(err);
+              reject(err);
             } else {
               if (self._password) {
                 self._pubClient.auth(self._password);
                 self._subClient.auth(self._password);
               }
-              resolver.resolve();
+              resolve();
             }
 
           });
-
-        return resolver.promise;
+        });
       },
 
       /**
